@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoRise 3D Exhibition Booth - Premium</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b3d 50%, #4a2645 100%);
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: linear-gradient(90deg, #ff6b1a 0%, #e74c3c 50%, #e91e63 100%);
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-bottom: 4px solid #ffd700;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 28px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #ffe0cc;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .btn-view {
+            background: rgba(139, 69, 19, 0.6);
+            color: white;
+        }
+
+        .btn-view.active {
+            background: white;
+            color: #6b2c91;
+            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+        }
+
+        .btn-led {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+            color: #1a1a1a;
+        }
+
+        .btn-led.off {
+            background: #555;
+            color: #aaa;
+        }
+
+        .btn-feature {
+            background: linear-gradient(135deg, #4a90e2 0%, #9b59b6 100%);
+            color: white;
+        }
+
+        .btn-screenshot {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.4);
+            padding: 5px 12px;
+            border-radius: 8px;
+        }
+
+        .zoom-label {
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .zoom-value {
+            background: #ffd700;
+            color: #1a1a1a;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            cursor: grab;
+        }
+
+        #canvas-container.grabbing {
+            cursor: grabbing;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        #footer {
+            background: linear-gradient(90deg, #1a1a2e 0%, #2d1b3d 50%, #1a1a2e 100%);
+            padding: 12px 20px;
+            border-top: 2px solid #ff8c42;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, rgba(74,144,226,0.3) 0%, rgba(155,89,182,0.3) 100%);
+        }
+
+        .feature-title {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .feature-desc {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .info-banner {
+            background: linear-gradient(90deg, #ff6b1a 0%, #e74c3c 50%, #e91e63 100%);
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            box-shadow: 0 4px 15px rgba(255,107,26,0.4);
+        }
+
+        .info-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-icon {
+            font-size: 32px;
+        }
+
+        .info-text {
+            flex: 1;
+        }
+
+        .info-title {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .info-details {
+            color: #ffe0cc;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .bracelet-box {
+            background: #ffd700;
+            color: #1a1a1a;
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            border: 2px solid #ff8c42;
+            box-shadow: 0 4px 12px rgba(255,215,0,0.5);
+        }
+
+        .bracelet-title {
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .bracelet-text {
+            font-size: 13px;
+        }
+
+        .stats-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff8c42;
+            color: white;
+            font-size: 12px;
+            min-width: 200px;
+            display: none;
+            z-index: 999;
+        }
+
+        .stats-panel.show {
+            display: block;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-label {
+            color: #ffd700;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 9999;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 20px;
+            }
+            .btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <div class="header-content">
+                <div class="title-row">
+                    <div>
+                        <h1>
+                            <span>🔥</span>
+                            <span style="color: #ffd700;">Echo</span><span>Rise</span>
+                            <span style="font-size: 18px;">- Premium 3D Exhibition</span>
+                        </h1>
+                        <div class="subtitle">🖱️ Σύρε το mouse • 🔍 Scroll για zoom • 📸 Κλικ views • ⌨️ Πλήκτρα βέλη</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="zoom-control">
+                            <span class="zoom-label">ZOOM</span>
+                            <span class="zoom-value" id="zoomDisplay">6.0x</span>
+                        </div>
+                        <button class="btn btn-led" id="ledToggle" onclick="toggleLED()">💡 LED ON</button>
+                        <button class="btn btn-feature" onclick="toggleStats()">📊 Stats</button>
+                        <button class="btn btn-screenshot" onclick="takeScreenshot()">📷 Screenshot</button>
+                    </div>
+                </div>
+                <div class="controls-row">
+                    <button class="btn btn-view active" onclick="setView('overview')">🏛️ Overview</button>
+                    <button class="btn btn-view" onclick="setView('jewelry')">💎 Κόσμημα</button>
+                    <button class="btn btn-view" onclick="setView('logo')">🎨 Logo</button>
+                    <button class="btn btn-view" onclick="setView('screen')">📱 Οθόνη</button>
+                    <button class="btn btn-view" onclick="setView('wall')">📝 Wall</button>
+                    <button class="btn btn-view" onclick="setView('plants')">🌿 Φυτά</button>
+                    <button class="btn btn-view" onclick="setView('free')">🖱️ Free</button>
+                    <button class="btn btn-feature" onclick="toggleAutoRotate()">🔄 Auto Rotate</button>
+                    <button class="btn btn-feature" onclick="togglePlants()">🌿 Toggle Plants</button>
+                    <button class="btn btn-feature" onclick="cycleTimeOfDay()">🌅 Time</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="renderCanvas"></canvas>
+        </div>
+
+        <div id="footer">
+            <div class="footer-content">
+                <div class="features-grid">
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(52,152,226,0.4) 0%, rgba(52,152,226,0.6) 100%);">
+                        <div class="feature-title" style="color: #4a90e2;">📱 Οθόνη HD</div>
+                        <div class="feature-desc" style="color: #a8d8ff;">Glow effect + animation</div>
+                    </div>
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(255,140,66,0.4) 0%, rgba(255,140,66,0.6) 100%);">
+                        <div class="feature-title" style="color: #ff8c42;">💎 Plexiglass</div>
+                        <div class="feature-desc" style="color: #ffd9b3;">24 LEDs + rotation</div>
+                    </div>
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(255,107,26,0.4) 0%, rgba(255,107,26,0.6) 100%);">
+                        <div class="feature-title" style="color: #ff6b1a;">🎨 Logo Banner</div>
+                        <div class="feature-desc" style="color: #ffccaa;">Πουλιά + ανατολή</div>
+                    </div>
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(46,204,113,0.4) 0%, rgba(46,204,113,0.6) 100%);">
+                        <div class="feature-title" style="color: #2ecc71;">🌿 Φυτά Premium</div>
+                        <div class="feature-desc" style="color: #a8ffcc;">6 γλάστρες + φύλλα</div>
+                    </div>
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(233,30,99,0.4) 0%, rgba(233,30,99,0.6) 100%);">
+                        <div class="feature-title" style="color: #e91e63;">👥 Visitors 3D</div>
+                        <div class="feature-desc" style="color: #ffaad5;">4 επισκέπτες animated</div>
+                    </div>
+                    <div class="feature-card" style="background: linear-gradient(135deg, rgba(155,89,182,0.4) 0%, rgba(155,89,182,0.6) 100%);">
+                        <div class="feature-title" style="color: #9b59b6;">✨ Effects</div>
+                        <div class="feature-desc" style="color: #e6ccff;">Particles + lighting</div>
+                    </div>
+                </div>
+
+                <div class="info-banner">
+                    <div class="info-content">
+                        <span class="info-icon">✨</span>
+                        <div class="info-text">
+                            <div class="info-title">🔥 Premium Features Activated!</div>
+                            <div class="info-details">
+                                ✨ Ζεστό περιβάλλον exhibition • 🎨 Logo με πουλιά & sunrise • 💎 Ultra plexiglass vitrine • 
+                                💡 24 animated LEDs • 👥 4 visitors με motion • 🌿 6 φυτά premium • ✨ Floating particles • 
+                                🏛️ Exhibition context • ⌨️ Keyboard controls • 📷 Screenshot function
+                            </div>
+                        </div>
+                        <div class="bracelet-box">
+                            <div class="bracelet-title">Βραχιόλι</div>
+                            <div class="bracelet-text">"ΜΙΛΑ - ΣΕ ΑΚΟΥΩ"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-panel" id="statsPanel">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #ffd700;">📊 Statistics</div>
+        <div class="stat-row">
+            <span class="stat-label">Camera Angle:</span>
+            <span id="statAngle">45°</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Zoom Level:</span>
+            <span id="statZoom">6.0x</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">LED Status:</span>
+            <span id="statLED">ON</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Plants Visible:</span>
+            <span id="statPlants">YES</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Auto Rotate:</span>
+            <span id="statRotate">OFF</span>
+        </div>
+        <div class="stat-row" style="border: none;">
+            <span class="stat-label">Time of Day:</span>
+            <span id="statTime">Day</span>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">⏳ Loading 3D Scene...</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls;
+        let bracelet, ledLights = [], visitors = [];
+        let cameraAngle = { horizontal: 45, vertical: 20 };
+        let zoom = 6;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+        let showLED = true;
+        let showPlants = true;
+        let autoRotate = false;
+        let timeOfDay = 'day'; // day, sunset, night
+        let plants = [];
+
+        // Initialize scene
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            
+            // Create gradient background
+            const canvas = document.createElement('canvas');
+            canvas.width = 2;
+            canvas.height = 256;
+            const context = canvas.getContext('2d');
+            const gradient = context.createLinearGradient(0, 0, 0, 256);
+            gradient.addColorStop(0, '#1a0a2e');
+            gradient.addColorStop(0.3, '#2d1b3d');
+            gradient.addColorStop(0.6, '#4a2645');
+            gradient.addColorStop(1, '#6b3e52');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 2, 256);
+            const texture = new THREE.CanvasTexture(canvas);
+            scene.background = texture;
+            scene.fog = new THREE.FogExp2(0x2d1b3d, 0.08);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(5, 3.5, 6);
+            camera.lookAt(0, 1, 0);
+
+            // Renderer
+            const canvas3d = document.getElementById('renderCanvas');
+            renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.4;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffe6d5, 0.5);
+            scene.add(ambientLight);
+
+            const mainSpot = new THREE.SpotLight(0xffd9b3, 2.5);
+            mainSpot.position.set(0, 8, 2);
+            mainSpot.angle = Math.PI / 3.5;
+            mainSpot.penumbra = 0.5;
+            mainSpot.castShadow = true;
+            mainSpot.shadow.mapSize.width = 2048;
+            mainSpot.shadow.mapSize.height = 2048;
+            scene.add(mainSpot);
+
+            const backLight = new THREE.SpotLight(0xff8c42, 2);
+            backLight.position.set(0, 4, -4);
+            backLight.angle = Math.PI / 4;
+            scene.add(backLight);
+
+            const sideLight1 = new THREE.PointLight(0x4a90e2, 1, 10);
+            sideLight1.position.set(-4, 2, 2);
+            scene.add(sideLight1);
+
+            const sideLight2 = new THREE.PointLight(0xff6b6b, 1, 10);
+            sideLight2.position.set(4, 2, 2);
+            scene.add(sideLight2);
+
+            const jewelrySpot = new THREE.SpotLight(0xffd700, 3.5);
+            jewelrySpot.position.set(0.2, 3, 0.5);
+            jewelrySpot.angle = Math.PI / 8;
+            jewelrySpot.castShadow = true;
+            scene.add(jewelrySpot);
+
+            // Floor
+            const floor = new THREE.Mesh(
+                new THREE.CircleGeometry(12, 64),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.6 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Spotlight circles on floor
+            for (let i = 0; i < 3; i++) {
+                const circle = new THREE.Mesh(
+                    new THREE.RingGeometry(0.5 + i * 0.4, 0.55 + i * 0.4, 64),
+                    new THREE.MeshBasicMaterial({ color: 0xff8c42, transparent: true, opacity: 0.15 - i * 0.04, side: THREE.DoubleSide })
+                );
+                circle.rotation.x = -Math.PI / 2;
+                circle.position.y = 0.02;
+                scene.add(circle);
+            }
+
+            // Exhibition walls
+            [-5, 5].forEach((x, idx) => {
+                const wall = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 4, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x3d2a47, roughness: 0.8 })
+                );
+                wall.position.set(x, 2, -2);
+                wall.receiveShadow = true;
+                scene.add(wall);
+
+                const banner = new THREE.Mesh(
+                    new THREE.PlaneGeometry(2, 1.2),
+                    new THREE.MeshStandardMaterial({ 
+                        color: idx === 0 ? 0x3498db : 0xe74c3c,
+                        emissive: idx === 0 ? 0x2980b9 : 0xc0392b,
+                        emissiveIntensity: 0.3
+                    })
+                );
+                banner.position.set(x * 1.02, 2, 1);
+                banner.rotation.y = idx === 0 ? Math.PI / 2 : -Math.PI / 2;
+                scene.add(banner);
+            });
+
+            // Back panel with logo
+            createBackPanel();
+            
+            // Table and furniture
+            createTable();
+            
+            // Jewelry display
+            createJewelryDisplay();
+            
+            // Other elements
+            createScreen();
+            createBooks();
+            createInteractiveWall();
+            createBrochureStand();
+            createChairs();
+            createVisitors();
+            
+            // PLANTS!
+            createPlants();
+            
+            // Particles
+            createParticles();
+
+            // Event listeners
+            setupEventListeners();
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Start animation
+            animate();
+        }
+
+        function createBackPanel() {
+            const backPanel = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 1.9, 0.1),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, emissive: 0xffeedd, emissiveIntensity: 0.1 })
+            );
+            backPanel.position.set(0, 0.95, -0.4);
+            backPanel.castShadow = true;
+            scene.add(backPanel);
+
+            // Logo area
+            const logoArea = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.1, 0.7),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffe0cc, emissiveIntensity: 0.2 })
+            );
+            logoArea.position.set(0, 1.55, -0.34);
+            scene.add(logoArea);
+
+            const gradientArea = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.0, 0.35),
+                new THREE.MeshStandardMaterial({ color: 0xff8c42, emissive: 0xff6b1a, emissiveIntensity: 0.6 })
+            );
+            gradientArea.position.set(0, 1.7, -0.338);
+            scene.add(gradientArea);
+
+            // Birds
+            const birdPositions = [[-0.4, 1.82], [-0.22, 1.85], [0, 1.87], [0.22, 1.85], [0.4, 1.82]];
+            birdPositions.forEach((pos, i) => {
+                const scale = 1 + i * 0.15;
+                const birdMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                
+                const wingL = new THREE.Mesh(new THREE.ConeGeometry(0.015 * scale, 0.05 * scale, 3), birdMat);
+                wingL.position.set(pos[0] - 0.02 * scale, pos[1], -0.335);
+                wingL.rotation.z = Math.PI + Math.PI / 6;
+                scene.add(wingL);
+                
+                const wingR = new THREE.Mesh(new THREE.ConeGeometry(0.015 * scale, 0.05 * scale, 3), birdMat);
+                wingR.position.set(pos[0] + 0.02 * scale, pos[1], -0.335);
+                wingR.rotation.z = Math.PI - Math.PI / 6;
+                scene.add(wingR);
+            });
+
+            // EchoRise text
+            const letterMat = new THREE.MeshStandardMaterial({ color: 0xff6b1a, emissive: 0xff8c42, emissiveIntensity: 0.4 });
+            for (let i = 0; i < 8; i++) {
+                const letter = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.11, 0.008), letterMat);
+                letter.position.set(-0.35 + i * 0.1, 1.5, -0.336);
+                scene.add(letter);
+            }
+
+            // Student silhouette
+            const studentMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, emissive: 0x34495e, emissiveIntensity: 0.2 });
+            
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), studentMat);
+            head.position.set(0, 1.3, -0.36);
+            scene.add(head);
+            
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.3, 16), studentMat);
+            body.position.set(0, 1.05, -0.36);
+            scene.add(body);
+
+            // Sun glow
+            const sunGlow = new THREE.Mesh(
+                new THREE.SphereGeometry(0.25, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.4 })
+            );
+            sunGlow.position.set(0, 1.2, -0.37);
+            scene.add(sunGlow);
+
+            // Sun rays
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const ray = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.01, 0.15, 0.01),
+                    new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.3 })
+                );
+                ray.position.set(Math.cos(angle) * 0.3, 1.2 + Math.sin(angle) * 0.3, -0.365);
+                ray.rotation.z = angle;
+                scene.add(ray);
+            }
+
+            // Infographic circles
+            const circleColors = [0x3498db, 0xe74c3c, 0x2ecc71];
+            [-0.35, 0, 0.35].forEach((x, i) => {
+                const circle = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.08, 32),
+                    new THREE.MeshStandardMaterial({ color: circleColors[i], emissive: circleColors[i], emissiveIntensity: 0.4 })
+                );
+                circle.position.set(x, 0.8, -0.335);
+                scene.add(circle);
+            });
+        }
+
+        function createTable() {
+            const table = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 0.09, 0.65),
+                new THREE.MeshStandardMaterial({ color: 0xf5efe8, roughness: 0.2, metalness: 0.2 })
+            );
+            table.position.set(0, 0.8, 0.1);
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+
+            // Table legs
+            const legMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.9, roughness: 0.1 });
+            [[-0.55, -0.2], [0.55, -0.2], [-0.55, 0.4], [0.55, 0.4]].forEach(([x, z]) => {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.75, 16), legMat);
+                leg.position.set(x, 0.375, z);
+                leg.castShadow = true;
+                scene.add(leg);
+            });
+        }
+
+        function createJewelryDisplay() {
+            // Base
+            const caseBase = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.17, 0.17, 0.02, 32),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.8, roughness: 0.1 })
+            );
+            caseBase.position.set(0.22, 0.845, 0.15);
+            scene.add(caseBase);
+
+            // Plexiglass case
+            const caseMat = new THREE.MeshPhysicalMaterial({ 
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.08,
+                roughness: 0.02,
+                metalness: 0.02,
+                transmission: 0.98
+            });
+
+            const displayCase = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.25, 32, 1, true), caseMat);
+            displayCase.position.set(0.22, 0.975, 0.15);
+            displayCase.castShadow = true;
+            scene.add(displayCase);
+
+            // Dome top
+            const domeTop = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), caseMat);
+            domeTop.position.set(0.22, 1.1, 0.15);
+            scene.add(domeTop);
+
+            // Platform
+            const platform = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.12, 0.025, 32),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.95, roughness: 0.05 })
+            );
+            platform.position.set(0.22, 0.865, 0.15);
+            scene.add(platform);
+
+            // Bracelet
+            bracelet = new THREE.Mesh(
+                new THREE.TorusGeometry(0.055, 0.013, 24, 48),
+                new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.98, roughness: 0.02, emissive: 0xffffff, emissiveIntensity: 0.2 })
+            );
+            bracelet.position.set(0.22, 0.975, 0.15);
+            bracelet.rotation.x = Math.PI / 2;
+            bracelet.castShadow = true;
+            scene.add(bracelet);
+
+            // Heart charm
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(0, 0);
+            heartShape.bezierCurveTo(0, -0.015, -0.015, -0.015, -0.015, 0);
+            heartShape.bezierCurveTo(-0.015, 0.008, -0.008, 0.015, 0, 0.022);
+            heartShape.bezierCurveTo(0.008, 0.015, 0.015, 0.008, 0.015, 0);
+            heartShape.bezierCurveTo(0.015, -0.015, 0, -0.015, 0, 0);
+            
+            const heartGeo = new THREE.ExtrudeGeometry(heartShape, { depth: 0.006, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002 });
+            const heart = new THREE.Mesh(
+                heartGeo,
+                new THREE.MeshStandardMaterial({ color: 0xff3b3b, metalness: 0.5, roughness: 0.3, emissive: 0xff0000, emissiveIntensity: 0.3 })
+            );
+            heart.position.set(0.22, 0.975, 0.205);
+            heart.rotation.y = Math.PI;
+            heart.scale.set(2, 2, 2);
+            heart.castShadow = true;
+            scene.add(heart);
+
+            // LED strip - 24 LEDs
+            const ledCount = 24;
+            const ledColors = [0xff4500, 0xff6b1a, 0xff8c42, 0xffa500, 0xffd700];
+            
+            for (let i = 0; i < ledCount; i++) {
+                const angle = (i / ledCount) * Math.PI * 2;
+                const radius = 0.16;
+                
+                const led = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.012, 16, 16),
+                    new THREE.MeshStandardMaterial({ color: ledColors[i % 5], emissive: ledColors[i % 5], emissiveIntensity: 2.5 })
+                );
+                led.position.set(0.22 + Math.cos(angle) * radius, 0.84, 0.15 + Math.sin(angle) * radius);
+                scene.add(led);
+                
+                const ledLight = new THREE.PointLight(ledColors[i % 5], 0.8, 0.5);
+                ledLight.position.copy(led.position);
+                scene.add(ledLight);
+                ledLights.push(ledLight);
+            }
+
+            // LED housing
+            const stripHousing = new THREE.Mesh(
+                new THREE.TorusGeometry(0.16, 0.018, 12, 48),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, metalness: 0.6 })
+            );
+            stripHousing.position.set(0.22, 0.84, 0.15);
+            stripHousing.rotation.x = Math.PI / 2;
+            scene.add(stripHousing);
+        }
+
+        function createScreen() {
+            const screen = new THREE.Mesh(
+                new THREE.BoxGeometry(0.32, 0.45, 0.02),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8, roughness: 0.2 })
+            );
+            screen.position.set(-0.42, 1.08, 0.15);
+            screen.rotation.x = -0.3;
+            screen.castShadow = true;
+            scene.add(screen);
+
+            const display = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.28, 0.40),
+                new THREE.MeshStandardMaterial({ color: 0x3498db, emissive: 0x2980b9, emissiveIntensity: 1.2 })
+            );
+            display.position.set(-0.42, 1.08, 0.161);
+            display.rotation.x = -0.3;
+            scene.add(display);
+
+            const screenGlow = new THREE.PointLight(0x3498db, 1, 1.5);
+            screenGlow.position.set(-0.42, 1.08, 0.2);
+            scene.add(screenGlow);
+
+            const stand = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.03, 0.04, 0.22, 16),
+                new THREE.MeshStandardMaterial({ color: 0x2c3e50, metalness: 0.7 })
+            );
+            stand.position.set(-0.42, 0.95, 0.15);
+            scene.add(stand);
+        }
+
+        function createBooks() {
+            const bookColors = [0x3498db, 0xe74c3c, 0x2ecc71, 0xf39c12, 0x9b59b6];
+            for (let i = 0; i < 5; i++) {
+                const book = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.14, 0.21, 0.028),
+                    new THREE.MeshStandardMaterial({ color: bookColors[i], roughness: 0.8 })
+                );
+                book.position.set(-0.48 + i * 0.032, 0.945 + i * 0.022, -0.02 - i * 0.012);
+                book.rotation.y = -0.2 + i * 0.08;
+                book.castShadow = true;
+                scene.add(book);
+            }
+        }
+
+        function createInteractiveWall() {
+            const wall = new THREE.Mesh(
+                new THREE.BoxGeometry(0.48, 0.65, 0.055),
+                new THREE.MeshStandardMaterial({ color: 0xc9a471, roughness: 0.95 })
+            );
+            wall.position.set(0.6, 1.23, 0.1);
+            wall.castShadow = true;
+            scene.add(wall);
+
+            const frame = new THREE.Mesh(
+                new THREE.BoxGeometry(0.52, 0.69, 0.04),
+                new THREE.MeshStandardMaterial({ color: 0x8b6f47, roughness: 0.8 })
+            );
+            frame.position.set(0.6, 1.23, 0.07);
+            scene.add(frame);
+
+            // Post-it notes
+            const postItColors = [0xffeb3b, 0xff9800, 0x4caf50, 0xe91e63, 0x9c27b0, 0x00bcd4];
+            for (let i = 0; i < 12; i++) {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                const postIt = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.09, 0.09),
+                    new THREE.MeshStandardMaterial({ color: postItColors[i % 6] })
+                );
+                postIt.position.set(0.48 + col * 0.13, 1.05 + row * 0.12, 0.128);
+                postIt.rotation.z = (Math.random() - 0.5) * 0.25;
+                scene.add(postIt);
+            }
+        }
+
+        function createBrochureStand() {
+            const brochureStand = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, 0.3, 0.15),
+                new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.1 })
+            );
+            brochureStand.position.set(0.54, 1, 0.45);
+            brochureStand.castShadow = true;
+            scene.add(brochureStand);
+
+            for (let i = 0; i < 8; i++) {
+                const brochure = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.12, 0.17, 0.008),
+                    new THREE.MeshStandardMaterial({ color: 0xff8c42 })
+                );
+                brochure.position.set(0.54, 0.91 + i * 0.022, 0.45);
+                brochure.rotation.x = -0.18;
+                scene.add(brochure);
+            }
+        }
+
+        function createChairs() {
+            const chairPositions = [[-0.8, 0, 0.8], [0.8, 0, 0.8], [-0.8, 0, -0.3]];
+            chairPositions.forEach(pos => {
+                const seatMat = new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.7 });
+                
+                const seat = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.4), seatMat);
+                seat.position.set(pos[0], 0.47, pos[2]);
+                seat.castShadow = true;
+                scene.add(seat);
+
+                const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.34, 0.06), seatMat);
+                backrest.position.set(pos[0], 0.64, pos[2] - 0.17);
+                backrest.castShadow = true;
+                scene.add(backrest);
+
+                [[-0.17, -0.17], [0.17, -0.17], [-0.17, 0.17], [0.17, 0.17]].forEach(([dx, dz]) => {
+                    const leg = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.023, 0.029, 0.47, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x654321, metalness: 0.2 })
+                    );
+                    leg.position.set(pos[0] + dx, 0.235, pos[2] + dz);
+                    leg.castShadow = true;
+                    scene.add(leg);
+                });
+            });
+        }
+
+        function createVisitors() {
+            function createVisitor(x, z, color) {
+                const visitorGroup = new THREE.Group();
+                
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.8 });
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), skinMat);
+                head.position.y = 1.68;
+                head.castShadow = true;
+                visitorGroup.add(head);
+
+                const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 });
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.19, 0.65, 16), bodyMat);
+                body.position.y = 1.23;
+                body.castShadow = true;
+                visitorGroup.add(body);
+
+                [-0.22, 0.22].forEach(xOff => {
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.55, 8), bodyMat);
+                    arm.position.set(xOff, 1.18, 0);
+                    arm.rotation.z = xOff < 0 ? 0.35 : -0.35;
+                    arm.castShadow = true;
+                    visitorGroup.add(arm);
+                });
+
+                [-0.11, 0.11].forEach(xOff => {
+                    const leg = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.065, 0.055, 0.85, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.8 })
+                    );
+                    leg.position.set(xOff, 0.52, 0);
+                    leg.castShadow = true;
+                    visitorGroup.add(leg);
+                });
+
+                visitorGroup.position.set(x, 0, z);
+                visitorGroup.castShadow = true;
+                return visitorGroup;
+            }
+
+            const v1 = createVisitor(-1.3, 1.6, 0xe91e63);
+            v1.rotation.y = -Math.PI / 4;
+            scene.add(v1);
+            visitors.push(v1);
+
+            const v2 = createVisitor(1.4, 1.3, 0x3498db);
+            v2.rotation.y = Math.PI;
+            scene.add(v2);
+            visitors.push(v2);
+
+            const v3 = createVisitor(-1.1, 0.4, 0x2ecc71);
+            v3.rotation.y = Math.PI / 6;
+            scene.add(v3);
+            visitors.push(v3);
+
+            const v4 = createVisitor(1.0, -0.4, 0xff9800);
+            v4.rotation.y = Math.PI / 2;
+            scene.add(v4);
+            visitors.push(v4);
+        }
+
+        function createPlants() {
+            // Create 6 plants in decorative pots
+            const plantPositions = [
+                [-1.5, 0, -0.5],
+                [1.5, 0, -0.5],
+                [-1.2, 0, 2.0],
+                [1.2, 0, 2.0],
+                [-0.9, 0, 0.0],
+                [0.9, 0, 0.0]
+            ];
+
+            plantPositions.forEach((pos, idx) => {
+                const plantGroup = new THREE.Group();
+                
+                // Pot
+                const potColors = [0x8b4513, 0xa0522d, 0x6b4423, 0x9b6b3f];
+                const pot = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.12, 0.08, 0.25, 16),
+                    new THREE.MeshStandardMaterial({ color: potColors[idx % 4], roughness: 0.8 })
+                );
+                pot.position.y = 0.125;
+                pot.castShadow = true;
+                plantGroup.add(pot);
+
+                // Soil
+                const soil = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.12, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x3d2817, roughness: 0.95 })
+                );
+                soil.position.y = 0.26;
+                soil.rotation.x = -Math.PI / 2;
+                plantGroup.add(soil);
+
+                // Plant stem
+                const stemColors = [0x2d5016, 0x355e1b, 0x3a6b1f];
+                const stemCount = 3 + Math.floor(Math.random() * 3);
+                
+                for (let i = 0; i < stemCount; i++) {
+                    const stem = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.01, 0.012, 0.3 + Math.random() * 0.2, 8),
+                        new THREE.MeshStandardMaterial({ color: stemColors[i % 3], roughness: 0.7 })
+                    );
+                    stem.position.set(
+                        (Math.random() - 0.5) * 0.1,
+                        0.4 + Math.random() * 0.1,
+                        (Math.random() - 0.5) * 0.1
+                    );
+                    stem.rotation.z = (Math.random() - 0.5) * 0.3;
+                    stem.castShadow = true;
+                    plantGroup.add(stem);
+
+                    // Leaves on stem
+                    const leafCount = 4 + Math.floor(Math.random() * 4);
+                    for (let j = 0; j < leafCount; j++) {
+                        const leafShape = new THREE.Shape();
+                        leafShape.moveTo(0, 0);
+                        leafShape.quadraticCurveTo(0.03, 0.02, 0.05, 0);
+                        leafShape.quadraticCurveTo(0.03, -0.02, 0, 0);
+                        
+                        const leafGeo = new THREE.ShapeGeometry(leafShape);
+                        const leaf = new THREE.Mesh(
+                            leafGeo,
+                            new THREE.MeshStandardMaterial({ 
+                                color: idx % 2 === 0 ? 0x2ecc71 : 0x27ae60, 
+                                side: THREE.DoubleSide,
+                                roughness: 0.6
+                            })
+                        );
+                        
+                        const height = (j / leafCount) * 0.35;
+                        leaf.position.set(
+                            stem.position.x + (Math.random() - 0.5) * 0.05,
+                            0.3 + height,
+                            stem.position.z + (Math.random() - 0.5) * 0.05
+                        );
+                        leaf.rotation.x = Math.PI / 2;
+                        leaf.rotation.z = Math.random() * Math.PI * 2;
+                        leaf.castShadow = true;
+                        plantGroup.add(leaf);
+                    }
+                }
+
+                plantGroup.position.set(pos[0], pos[1], pos[2]);
+                scene.add(plantGroup);
+                plants.push(plantGroup);
+            });
+        }
+
+        function createParticles() {
+            const particleCount = 100;
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                particlePositions[i * 3] = (Math.random() - 0.5) * 15;
+                particlePositions[i * 3 + 1] = Math.random() * 8;
+                particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 15;
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+        }
+
+        function setupEventListeners() {
+            const canvas = document.getElementById('canvas-container');
+            
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                canvas.classList.add('grabbing');
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - lastMouseX;
+                const deltaY = e.clientY - lastMouseY;
+                
+                cameraAngle.horizontal += deltaX * 0.3;
+                cameraAngle.vertical = Math.max(-30, Math.min(60, cameraAngle.vertical - deltaY * 0.2));
+                
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                
+                updateCamera();
+                updateStats();
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('grabbing');
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoom = Math.max(2, Math.min(12, zoom + e.deltaY * 0.01));
+                updateCamera();
+                updateZoomDisplay();
+                updateStats();
+            });
+
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                const step = 5;
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        cameraAngle.horizontal -= step;
+                        break;
+                    case 'ArrowRight':
+                        cameraAngle.horizontal += step;
+                        break;
+                    case 'ArrowUp':
+                        cameraAngle.vertical = Math.min(60, cameraAngle.vertical + step);
+                        break;
+                    case 'ArrowDown':
+                        cameraAngle.vertical = Math.max(-30, cameraAngle.vertical - step);
+                        break;
+                    case '+':
+                    case '=':
+                        zoom = Math.max(2, zoom - 0.5);
+                        break;
+                    case '-':
+                    case '_':
+                        zoom = Math.min(12, zoom + 0.5);
+                        break;
+                    case 'l':
+                        toggleLED();
+                        break;
+                    case 'p':
+                        togglePlants();
+                        break;
+                    case 'r':
+                        toggleAutoRotate();
+                        break;
+                }
+                updateCamera();
+                updateZoomDisplay();
+                updateStats();
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function updateCamera() {
+            const h = cameraAngle.horizontal * Math.PI / 180;
+            const v = cameraAngle.vertical * Math.PI / 180;
+            
+            camera.position.x = zoom * Math.sin(h) * Math.cos(v);
+            camera.position.y = zoom * Math.sin(v);
+            camera.position.z = zoom * Math.cos(h) * Math.cos(v);
+            camera.lookAt(0, 0.9, 0);
+        }
+
+        function updateZoomDisplay() {
+            document.getElementById('zoomDisplay').textContent = zoom.toFixed(1) + 'x';
+        }
+
+        function updateStats() {
+            document.getElementById('statAngle').textContent = Math.round(cameraAngle.horizontal) + '°';
+            document.getElementById('statZoom').textContent = zoom.toFixed(1) + 'x';
+        }
+
+        // Control functions
+        function toggleLED() {
+            showLED = !showLED;
+            const btn = document.getElementById('ledToggle');
+            if (showLED) {
+                btn.textContent = '💡 LED ON';
+                btn.classList.remove('off');
+            } else {
+                btn.textContent = '💡 LED OFF';
+                btn.classList.add('off');
+            }
+            document.getElementById('statLED').textContent = showLED ? 'ON' : 'OFF';
+        }
+
+        function togglePlants() {
+            showPlants = !showPlants;
+            plants.forEach(plant => {
+                plant.visible = showPlants;
+            });
+            document.getElementById('statPlants').textContent = showPlants ? 'YES' : 'NO';
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            document.getElementById('statRotate').textContent = autoRotate ? 'ON' : 'OFF';
+        }
+
+        function toggleStats() {
+            const panel = document.getElementById('statsPanel');
+            panel.classList.toggle('show');
+        }
+
+        function setView(view) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.btn-view').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            const views = {
+                overview: { h: 45, v: 25, z: 6 },
+                jewelry: { h: 20, v: 10, z: 2.2 },
+                screen: { h: -30, v: 15, z: 2.5 },
+                wall: { h: 65, v: 20, z: 3.5 },
+                logo: { h: 0, v: 35, z: 3.8 },
+                plants: { h: 90, v: 30, z: 5 },
+                free: null
+            };
+            
+            if (view !== 'free' && views[view]) {
+                cameraAngle.horizontal = views[view].h;
+                cameraAngle.vertical = views[view].v;
+                zoom = views[view].z;
+                updateCamera();
+                updateZoomDisplay();
+                updateStats();
+            }
+        }
+
+        function cycleTimeOfDay() {
+            const times = ['day', 'sunset', 'night'];
+            const currentIndex = times.indexOf(timeOfDay);
+            timeOfDay = times[(currentIndex + 1) % times.length];
+            
+            // Change lighting based on time
+            // This is a simplified version - you can enhance it
+            document.getElementById('statTime').textContent = timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
+        }
+
+        function takeScreenshot() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'echorise-booth-' + Date.now() + '.png';
+            link.href = dataURL;
+            link.click();
+        }
+
+        // Animation loop
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            // Rotate bracelet
+            if (bracelet) {
+                bracelet.rotation.z += 0.02;
+            }
+
+            // Animate LEDs
+            ledLights.forEach((light, i) => {
+                const brightness = (Math.sin(time * 3 + i * 0.4) + 1) / 2;
+                light.intensity = showLED ? 0.5 + brightness * 0.5 : 0;
+            });
+
+            // Animate visitors
+            if (visitors[1]) {
+                visitors[1].position.z = 1.3 + Math.sin(time * 0.5) * 0.25;
+            }
+            if (visitors[2]) {
+                visitors[2].rotation.y = Math.PI / 6 + Math.sin(time * 0.8) * 0.12;
+            }
+
+            // Auto rotate
+            if (autoRotate) {
+                cameraAngle.horizontal += 0.3;
+                updateCamera();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Start when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
